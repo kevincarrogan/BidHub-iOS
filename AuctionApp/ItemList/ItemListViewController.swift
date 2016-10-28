@@ -7,7 +7,7 @@ import UIKit
 
 extension String {
     subscript (i: Int) -> String {
-        return String(Array(self)[i])
+        return String(Array(arrayLiteral: self)[i])
     }
 }
 
@@ -39,7 +39,7 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
         tableView.insertSubview(refreshView, aboveSubview: colorView)
 
         refreshControl.tintColor = UIColor(red: 157/225, green: 19/225, blue: 43/225, alpha: 1.0)
-        refreshControl.addTarget(self, action: "reloadItems", forControlEvents: .ValueChanged)
+        refreshControl.addTarget(self, action: #selector(ItemListViewController.reloadItems), forControlEvents: .ValueChanged)
         refreshView.addSubview(refreshControl)
         
         
@@ -50,16 +50,16 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
             tableView.rowHeight = UITableViewAutomaticDimension
         }
         self.tableView.alpha = 0.0
-        reloadData(silent: false, initialLoad: true)
+        reloadData(false, initialLoad: true)
 
         let user = PFUser.currentUser()
-        println("Logged in as: \(user.email)")
+        print("Logged in as: \(user.email)")
         
     }
     
     override func viewDidAppear(animated: Bool) {
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "pushRecieved:", name: "pushRecieved", object: nil)
-        timer = NSTimer.scheduledTimerWithTimeInterval(30.0, target: self, selector: "reloadItems", userInfo: nil, repeats: true)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ItemListViewController.pushRecieved(_:)), name: "pushRecieved", object: nil)
+        timer = NSTimer.scheduledTimerWithTimeInterval(30.0, target: self, selector: #selector(ItemListViewController.reloadItems), userInfo: nil, repeats: true)
         timer?.tolerance = 10.0
     }
     
@@ -98,7 +98,7 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
                 if !silent {
                     self.showError("Error getting Items")
                 }
-                println("Error getting items")
+                print("Error getting items")
                 
             }else{
                 self.items = items
@@ -126,7 +126,7 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
             return UITableViewAutomaticDimension
         }else{
 
-            if let cell = sizingCell {
+            if sizingCell != nil {
                 
                 let padding = 353
                 let minHeightText: NSString = "\n\n"
@@ -134,9 +134,9 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
                 let attributes =  [NSFontAttributeName: font] as NSDictionary
                 let item = items[indexPath.row]
                 
-                let minSize = minHeightText.boundingRectWithSize(CGSize(width: (view.frame.size.width - 40), height: 1000), options: .UsesLineFragmentOrigin, attributes: attributes as [NSObject : AnyObject], context: nil).height
+                let minSize = minHeightText.boundingRectWithSize(CGSize(width: (view.frame.size.width - 40), height: 1000), options: .UsesLineFragmentOrigin, attributes: attributes as? [String : AnyObject], context: nil).height
                 
-                let maxSize = item.itemDesctiption.boundingRectWithSize(CGSize(width: (view.frame.size.width - 40), height: 1000), options: .UsesLineFragmentOrigin, attributes: attributes as [NSObject : AnyObject], context: nil).height + 50
+                let maxSize = item.itemDesctiption.boundingRectWithSize(CGSize(width: (view.frame.size.width - 40), height: 1000), options: .UsesLineFragmentOrigin, attributes: attributes as? [String : AnyObject], context: nil).height + 50
                 
                 return (max(minSize, maxSize) + CGFloat(padding))
 
@@ -176,7 +176,7 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
                 cell.donorAvatar.image = image.resizedImageToSize(cell.donorAvatar.bounds.size)
                 
             }, failure: { (urlRequest: NSURLRequest!, response: NSURLResponse!, error: NSError!) -> Void in
-                println("error occured: \(error)")
+                print("error occured: \(error)")
             })
         }
         
@@ -185,8 +185,8 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
         cell.itemDescriptionLabel.text = item.itemDesctiption
         
         if item.quantity > 1 {
-            var bidsString = ", ".join(item.currentPrice.map({bidPrice in "$\(bidPrice)"}))
-            if count(bidsString) == 0 {
+            var bidsString = item.currentPrice.map({bidPrice in "$\(bidPrice)"}).joinWithSeparator(", ")
+            if bidsString == "" {
                 bidsString = "(none yet)"
             }
             
@@ -301,7 +301,7 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
         
         DataManager().sharedInstance.bidOn(item, amount: amount) { (success, errorString) -> () in
             if success {
-                println("Wohooo")
+                print("Wohooo")
                 self.items = DataManager().sharedInstance.allItems
                 self.reloadData()
                 SVProgressHUD.dismiss()
@@ -323,7 +323,7 @@ class ItemListViewController: UIViewController, UITableViewDelegate, UITableView
             let alertView = UIAlertController(title: "Error", message: errorString, preferredStyle: .Alert)
 
             let okAction = UIAlertAction(title: "Ok", style: .Default, handler: { (action) -> Void in
-                println("Ok Pressed")
+                print("Ok Pressed")
             })
             
             alertView.addAction(okAction)

@@ -23,7 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: frame)
         
         
-        var currentUser = PFUser.currentUser()
+        let currentUser = PFUser.currentUser()
         if currentUser != nil {
             let itemVC = UIStoryboard(name: "Main", bundle: NSBundle.mainBundle()).instantiateInitialViewController() as? UINavigationController
             window?.rootViewController=itemVC
@@ -53,11 +53,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let tokenChars = UnsafePointer<CChar>(deviceToken.bytes)
         var tokenString = ""
         
-        for var i = 0; i < deviceToken.length; i++ {
+        for i in 0 ..< deviceToken.length {
             tokenString += String(format: "%02.2hhx", arguments: [tokenChars[i]])
         }
         
-        println("tokenString: \(tokenString)")
+        print("tokenString: \(tokenString)")
         
         currentInstalation.setDeviceTokenFromData(deviceToken)
         currentInstalation.saveInBackgroundWithBlock(nil)
